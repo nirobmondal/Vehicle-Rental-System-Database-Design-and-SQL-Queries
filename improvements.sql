@@ -19,15 +19,12 @@ BEGIN
         SELECT 1 
         FROM Rentals 
         WHERE vehicle_id = NEW.vehicle_id
-          AND status IN ('active', 'completed')
+          AND status = 'active'  -- Only check active rentals, not completed ones
           AND rental_id != COALESCE(NEW.rental_id, -1)
           AND (
-              -- New rental starts during existing rental
-              (NEW.rental_date BETWEEN rental_date AND expected_return_date)
-              -- New rental ends during existing rental
-              OR (NEW.expected_return_date BETWEEN rental_date AND expected_return_date)
-              -- New rental completely encompasses existing rental
-              OR (rental_date BETWEEN NEW.rental_date AND NEW.expected_return_date)
+              -- New rental overlaps with existing rental in any way
+              NEW.rental_date <= expected_return_date
+              AND NEW.expected_return_date >= rental_date
           )
     ) THEN
         RAISE EXCEPTION 'Vehicle is already rented for overlapping dates. Please choose different dates or another vehicle.';
@@ -70,22 +67,26 @@ RETURNS TRIGGER AS $$
 DECLARE
     v_daily_rate DECIMAL(10, 2);
     v_rental_days INTEGER;
+    v_original_amount DECIMAL(10, 2);
 BEGIN
     -- Only calculate if return date is set and is after expected return date
     IF NEW.return_date IS NOT NULL AND NEW.return_date > NEW.expected_return_date THEN
-        -- Calculate late days
-        NEW.late_days := NEW.return_date - NEW.expected_return_date;
-        
-        -- Get vehicle daily rate
-        SELECT daily_rate INTO v_daily_rate
-        FROM Vehicles
-        WHERE vehicle_id = NEW.vehicle_id;
-        
-        -- Calculate late fee (20% per day of the daily rate)
-        NEW.late_fee := NEW.late_days * v_daily_rate * 0.20;
-        
-        -- Update total amount to include late fee
-        NEW.total_amount := NEW.total_amount + NEW.late_fee;
+        -- Store original amount if not already stored
+        IF NEW.late_days = 0 THEN
+            -- Calculate late days
+            NEW.late_days := NEW.return_date - NEW.expected_return_date;
+            
+            -- Get vehicle daily rate
+            SELECT daily_rate INTO v_daily_rate
+            FROM Vehicles
+            WHERE vehicle_id = NEW.vehicle_id;
+            
+            -- Calculate late fee (20% per day of the daily rate)
+            NEW.late_fee := NEW.late_days * v_daily_rate * 0.20;
+            
+            -- Add late fee to total amount (only once)
+            NEW.total_amount := NEW.total_amount + NEW.late_fee;
+        END IF;
     END IF;
     RETURN NEW;
 END;

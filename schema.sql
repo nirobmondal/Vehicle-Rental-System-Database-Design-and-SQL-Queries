@@ -108,8 +108,11 @@ BEGIN
     FROM Vehicles
     WHERE vehicle_id = p_vehicle_id;
     
-    -- Calculate number of days
+    -- Calculate number of days (minimum 1 day)
     v_days := p_expected_return_date - p_rental_date;
+    IF v_days < 1 THEN
+        v_days := 1;
+    END IF;
     
     -- Return total amount
     RETURN v_daily_rate * v_days;
