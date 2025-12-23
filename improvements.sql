@@ -166,7 +166,7 @@ EXECUTE FUNCTION update_vehicle_status_on_rental();
 -- Add maintenance scheduling columns
 ALTER TABLE Vehicles
 ADD COLUMN IF NOT EXISTS next_service_due_date DATE,
-ADD COLUMN IF NOT EXISTS next_service_due_mileage INTEGER CHECK (next_service_due_mileage > 0);
+ADD COLUMN IF NOT EXISTS next_service_due_mileage INTEGER CHECK (next_service_due_mileage IS NULL OR next_service_due_mileage > 0);
 
 -- Update existing vehicles with next service dates
 UPDATE Vehicles
@@ -239,11 +239,16 @@ BEGIN
     END IF;
     
     -- Calculate total payments including this new one
-    SELECT COALESCE(SUM(amount), 0) + NEW.amount INTO v_total_payments
+    -- For INSERT operations, NEW.payment_id is NULL, so we exclude it with the != check
+    -- For UPDATE operations, we exclude the old value of the current payment
+    SELECT COALESCE(SUM(amount), 0) INTO v_total_payments
     FROM Payments
     WHERE rental_id = NEW.rental_id
       AND status = 'completed'
-      AND payment_id != COALESCE(NEW.payment_id, -1);
+      AND (TG_OP = 'INSERT' OR payment_id != NEW.payment_id);
+    
+    -- Add the new payment amount
+    v_total_payments := v_total_payments + NEW.amount;
     
     -- Prevent overpayment
     IF v_total_payments > v_rental_amount THEN
@@ -317,17 +322,23 @@ RETURNS TRIGGER AS $$
 DECLARE
     v_record_id INTEGER;
 BEGIN
-    -- Determine record ID based on table
+    -- Determine record ID based on table using dynamic approach
     CASE TG_TABLE_NAME
-        WHEN 'Rentals' THEN
+        WHEN 'rentals' THEN
             v_record_id := COALESCE(NEW.rental_id, OLD.rental_id);
-        WHEN 'Vehicles' THEN
+        WHEN 'vehicles' THEN
             v_record_id := COALESCE(NEW.vehicle_id, OLD.vehicle_id);
-        WHEN 'Customers' THEN
+        WHEN 'customers' THEN
             v_record_id := COALESCE(NEW.customer_id, OLD.customer_id);
-        WHEN 'Payments' THEN
+        WHEN 'payments' THEN
             v_record_id := COALESCE(NEW.payment_id, OLD.payment_id);
+        WHEN 'vehicledamagereports' THEN
+            v_record_id := COALESCE(NEW.damage_id, OLD.damage_id);
+        WHEN 'vehicletypes' THEN
+            v_record_id := COALESCE(NEW.type_id, OLD.type_id);
         ELSE
+            -- For any other table, try to extract an ID from the first column
+            -- This provides forward compatibility
             v_record_id := 0;
     END CASE;
     

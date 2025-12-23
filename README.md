@@ -444,7 +444,6 @@ idx_payments_rental      -- Payment history lookup
 **Nirob Mondal**
 
 - GitHub: [@nirobmondal](https://github.com/nirobmondal)
-- Email: nirobmondal@example.com
 
 This project was created as a demonstration of advanced database design and SQL query techniques. It showcases best practices in relational database design, normalization, and complex query writing.
 
