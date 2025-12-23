@@ -12,6 +12,7 @@ A comprehensive PostgreSQL database design for a vehicle rental management syste
 - [Setup Instructions](#setup-instructions)
 - [SQL Queries](#sql-queries)
 - [Business Logic](#business-logic)
+- [Logical Issues and Improvements](#logical-issues-and-improvements)
 - [Technologies Used](#technologies-used)
 - [Author](#author)
 - [Contributing](#contributing)
@@ -207,7 +208,12 @@ psql -U your_username -d vehicle_rental_system -f schema.sql
 psql -U your_username -d vehicle_rental_system -f sample_data.sql
 ```
 
-6. **Verify installation:**
+6. **Load improvements (recommended):**
+```bash
+psql -U your_username -d vehicle_rental_system -f improvements.sql
+```
+
+7. **Verify installation:**
 ```sql
 -- Check tables
 \dt
@@ -215,6 +221,9 @@ psql -U your_username -d vehicle_rental_system -f sample_data.sql
 -- Verify data
 SELECT COUNT(*) FROM Customers;
 SELECT COUNT(*) FROM Vehicles;
+
+-- Check improvements
+SELECT * FROM active_rentals_dashboard;
 ```
 
 ### Using Beekeeper Studio:
@@ -225,7 +234,8 @@ SELECT COUNT(*) FROM Vehicles;
 4. Connect to `vehicle_rental_system` database
 5. Open and execute `schema.sql`
 6. Open and execute `sample_data.sql`
-7. Run queries from `queries.sql`
+7. Open and execute `improvements.sql` (recommended)
+8. Run queries from `queries.sql`
 
 ## 📝 SQL Queries
 
@@ -288,6 +298,67 @@ WHERE r.status = 'active';
 - How long it has been rented
 
 **Business Use Case**: Daily operations dashboard to monitor active rentals and identify vehicles currently out on rent.
+
+## 🔍 Logical Issues and Improvements
+
+This project includes a comprehensive analysis of potential logical issues in the database design. See **[LOGICAL_REVIEW.md](LOGICAL_REVIEW.md)** for detailed documentation.
+
+### Key Issues Addressed:
+
+1. **✅ Overlapping Rental Prevention** (HIGH PRIORITY)
+   - **Issue**: Vehicles could be double-booked for overlapping dates
+   - **Solution**: Added trigger to prevent rental conflicts
+   - **Implementation**: See `improvements.sql`
+
+2. **✅ Late Return Fee Calculation** (MEDIUM PRIORITY)
+   - **Issue**: No mechanism to calculate penalties for late returns
+   - **Solution**: Automatic late fee calculation (20% of daily rate per day)
+   - **Implementation**: Trigger-based calculation in `improvements.sql`
+
+3. **✅ Email Format Validation** (HIGH PRIORITY)
+   - **Issue**: Email format not validated
+   - **Solution**: Added regex constraint for email validation
+   - **Implementation**: See `improvements.sql`
+
+4. **✅ Vehicle Maintenance Tracking** (MEDIUM PRIORITY)
+   - **Issue**: No proactive maintenance scheduling
+   - **Solution**: Added service tracking with automated alerts
+   - **Implementation**: View `vehicles_needing_service`
+
+5. **✅ Payment Validation** (MEDIUM PRIORITY)
+   - **Issue**: No prevention of overpayment
+   - **Solution**: Trigger to validate total payments don't exceed rental amount
+   - **Implementation**: See `improvements.sql`
+
+6. **✅ Damage Tracking System** (MEDIUM PRIORITY)
+   - **Issue**: No way to track vehicle damage during rentals
+   - **Solution**: New `VehicleDamageReports` table
+   - **Implementation**: See `improvements.sql`
+
+7. **✅ Audit Trail** (MEDIUM PRIORITY)
+   - **Issue**: No tracking of changes to critical data
+   - **Solution**: Comprehensive audit log system
+   - **Implementation**: `AuditLog` table with triggers
+
+### Project Quality Assessment:
+
+- **Database Design**: 8/10 - Excellent normalization and structure
+- **Business Logic**: 7/10 - Good coverage with room for enhancement
+- **Production Readiness**: 6/10 - Needs additional validations and features
+- **Educational Value**: 10/10 - Comprehensive learning resource
+
+For complete details on all identified issues and recommended solutions, refer to [LOGICAL_REVIEW.md](LOGICAL_REVIEW.md).
+
+### File Structure:
+
+```
+├── schema.sql              # Base database schema
+├── sample_data.sql         # Sample data for testing
+├── improvements.sql        # Critical fixes and enhancements
+├── queries.sql            # 22 SQL queries with explanations
+├── LOGICAL_REVIEW.md      # Detailed analysis of design issues
+└── README.md              # This file
+```
 
 ## ⚙️ Business Logic
 
