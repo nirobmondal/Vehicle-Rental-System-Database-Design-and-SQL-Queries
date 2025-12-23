@@ -81,6 +81,11 @@ BEGIN
             FROM Vehicles
             WHERE vehicle_id = NEW.vehicle_id;
             
+            -- Check if vehicle exists
+            IF v_daily_rate IS NULL THEN
+                RAISE EXCEPTION 'Vehicle with ID % not found for late fee calculation', NEW.vehicle_id;
+            END IF;
+            
             -- Calculate late fee (20% per day of the daily rate)
             NEW.late_fee := NEW.late_days * v_daily_rate * 0.20;
             
@@ -227,6 +232,11 @@ BEGIN
     SELECT total_amount INTO v_rental_amount
     FROM Rentals
     WHERE rental_id = NEW.rental_id;
+    
+    -- Check if rental exists
+    IF v_rental_amount IS NULL THEN
+        RAISE EXCEPTION 'Rental with ID % not found', NEW.rental_id;
+    END IF;
     
     -- Calculate total payments including this new one
     SELECT COALESCE(SUM(amount), 0) + NEW.amount INTO v_total_payments

@@ -108,6 +108,11 @@ BEGIN
     FROM Vehicles
     WHERE vehicle_id = p_vehicle_id;
     
+    -- Check if vehicle exists
+    IF v_daily_rate IS NULL THEN
+        RAISE EXCEPTION 'Vehicle with ID % not found', p_vehicle_id;
+    END IF;
+    
     -- Calculate number of days (minimum 1 day)
     v_days := p_expected_return_date - p_rental_date;
     IF v_days < 1 THEN
