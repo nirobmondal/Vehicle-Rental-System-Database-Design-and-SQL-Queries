@@ -10,6 +10,7 @@ A comprehensive PostgreSQL database design for a vehicle rental management syste
 - [Features](#features)
 - [Database Tables](#database-tables)
 - [Setup Instructions](#setup-instructions)
+- [Testing](#testing)
 - [SQL Queries](#sql-queries)
 - [Business Logic](#business-logic)
 - [Logical Issues and Improvements](#logical-issues-and-improvements)
@@ -237,6 +238,28 @@ SELECT * FROM active_rentals_dashboard;
 7. Open and execute `improvements.sql` (recommended)
 8. Run queries from `queries.sql`
 
+## 🧪 Testing
+
+A comprehensive testing guide is available in **[TESTING_GUIDE.md](TESTING_GUIDE.md)** with 22 different tests covering:
+
+- ✅ Basic functionality (table creation, data loading)
+- ✅ Feature testing (automatic calculations, triggers)
+- ✅ Constraint testing (overlap prevention, validation)
+- ✅ Query performance testing
+- ✅ Data integrity testing
+- ✅ Audit trail verification
+- ✅ Reporting tests
+
+### Quick Test:
+```sql
+-- Verify everything is working
+SELECT * FROM active_rentals_dashboard;
+SELECT * FROM fleet_summary;
+SELECT * FROM vehicles_needing_service;
+```
+
+For detailed testing instructions and expected results, see [TESTING_GUIDE.md](TESTING_GUIDE.md).
+
 ## 📝 SQL Queries
 
 The `queries.sql` file contains 22 comprehensive queries organized into categories:
@@ -357,6 +380,7 @@ For complete details on all identified issues and recommended solutions, refer t
 ├── improvements.sql        # Critical fixes and enhancements
 ├── queries.sql            # 22 SQL queries with explanations
 ├── LOGICAL_REVIEW.md      # Detailed analysis of design issues
+├── TESTING_GUIDE.md       # Comprehensive testing instructions
 └── README.md              # This file
 ```
 
